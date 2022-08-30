@@ -7,7 +7,7 @@ urlencode() {
    if [ "$#" -eq 1 ]; then
       data=$(curl -s -o /dev/null -w %{url_effective} --get --data-urlencode "key=$1" "")
       if [ ! -z "$data" ]; then
-         echo "$(echo ${data##/?key=} |sed 's/\//%2f/g' |sed 's/:/%3a/g' |sed 's/?/%3f/g' |sed 's/(/%28/g' |sed 's/)/%29/g' |sed 's/\^/%5e/g' |sed 's/=/%3d/g' |sed 's/|/%7c/g' |sed 's/+/%20/g')"
+         echo -n "$(echo ${data##/?key=} |sed 's/\//%2f/g' |sed 's/:/%3a/g' |sed 's/?/%3f/g' |sed 's/(/%28/g' |sed 's/)/%29/g' |sed 's/\^/%5e/g' |sed 's/=/%3d/g' |sed 's/|/%7c/g' |sed 's/+/%20/g')"
       fi
    fi
 }
@@ -21,6 +21,8 @@ urlencode() {
             DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
          elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
             DOWNLOAD_PATH="https://fastly.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            DOWNLOAD_PATH="https://raw.fastgit.org/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
          else
             DOWNLOAD_PATH="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
          fi
@@ -36,6 +38,8 @@ urlencode() {
             DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
          elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
             DOWNLOAD_PATH="https://fastly.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            DOWNLOAD_PATH="https://raw.fastgit.org/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
          else
             DOWNLOAD_PATH="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
          fi

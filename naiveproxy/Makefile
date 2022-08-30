@@ -5,31 +5,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=naiveproxy
-PKG_VERSION:=101.0.4951.41-1
+PKG_VERSION:=104.0.5112.79-2
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/klzgrad/naiveproxy/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=890720b00ed81eacb11388b5c1a1d00c98182db6b57e87ba0053a5300aacfd5c
+PKG_HASH:=1c0ef77d448eb0cb6b75bfcbda6cef09e93ddfcdf406dc88030d8ddf748639c5
 
 PKG_LICENSE:=BSD 3-Clause
 PKG_LICENSE_FILES:=LICENSE
 PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
 
-PKG_BUILD_DEPENDS:=python3/host
 ifneq ($(wildcard $(TOPDIR)/feeds/packages/devel/ninja/ninja.mk),)
 PKG_BUILD_DEPENDS+= ninja/host
 endif
 PKG_USE_MIPS16:=0
 PKG_BUILD_PARALLEL:=1
-
-ifeq ($(NINJA),)
-NINJA = \
-	MAKEFLAGS="$(MAKE_JOBSERVER)" \
-		$(STAGING_DIR_HOSTPKG)/bin/ninja \
-		$(if $(findstring c,$(OPENWRT_VERBOSE)),-v) \
-		$(if $(MAKE_JOBSERVER),,-j1)
-endif
 
 ifneq ($(CONFIG_CPU_TYPE)," ")
   CPU_TYPE:=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
@@ -44,19 +35,37 @@ endif
 
 include $(INCLUDE_DIR)/package.mk
 
+define Package/naiveproxy/Default
+  URL:=https://github.com/klzgrad/naiveproxy
+  DEPENDS:=@!(arc||armeb||mips||mips64||powerpc||TARGET_gemini) +libatomic
+endef
+
 define Package/naiveproxy
+  $(call Package/naiveproxy/Default)
   SECTION:=net
   CATEGORY:=Network
   SUBMENU:=Web Servers/Proxies
-  URL:=https://github.com/klzgrad/naiveproxy
   TITLE:=Make a fortune quietly
-  DEPENDS:=@!(arc||armeb||mips||mips64||powerpc||TARGET_gemini) +libatomic
+endef
+
+define Package/libcronet
+  $(call Package/naiveproxy/Default)
+  SECTION:=libs
+  CATEGORY:=Libraries
+  TITLE:=The Chromium network stack library
 endef
 
 define Package/naiveproxy/description
   NaïveProxy uses Chrome's network stack to camouflage traffic with strong
   censorship resistance and low detectability. Reusing Chrome's stack also
   ensures best practices in performance and security.
+endef
+
+define Package/libcronet/description
+  Cronet is the Chromium network stack made available to Android apps as a library.
+
+  Cronet takes advantage of multiple technologies that reduce the latency and
+  increase the throughput of the network requests that your app needs to work.
 endef
 
 ifneq ($(CONFIG_CCACHE),)
@@ -66,31 +75,31 @@ ifneq ($(CONFIG_CCACHE),)
   export naive_ccache_flags=cc_wrapper="$(CCACHE)"
 endif
 
-CLANG_VER:=15-init-3677-g8133778d-4
+CLANG_VER:=15-init-11722-g3f3a235a-2
 CLANG_FILE:=clang-llvmorg-$(CLANG_VER).tgz
 define Download/CLANG
 	URL:=https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64
 	URL_FILE:=$(CLANG_FILE)
 	FILE:=$(CLANG_FILE)
-	HASH:=26d8c347253528e6dca471fa040d0e5e0f8eb55e6ec9671a673b88c723330a21
+	HASH:=0a5a0fa88e0b907c5c5a9dc0f1ccc66d4d993be1cc232932a5fc1f6b362c1925
 endef
 
-GN_VER:=53ef169800760fdc09f0773bf380fe99eaeab339
+GN_VER:=2ecd43a10266bd091c98e6dcde507c64f6a0dad3
 GN_FILE:=gn-git_revision-$(GN_VER).zip
 define Download/GN_TOOL
 	URL:=https://chrome-infra-packages.appspot.com/dl/gn/gn/linux-amd64/+
 	URL_FILE:=git_revision:$(GN_VER)
 	FILE:=$(GN_FILE)
-	HASH:=beb261220f4195109297b1658212d041ffebef5a88b3194219659cf197840f77
+	HASH:=fe169001046d8f386aeadf690e2d711e643fb6501519eb57e7dfb64690ff2ba1
 endef
 
-PGO_VER:=4951-1650389737-545882ae3e5c9e7f75e0781c8dc0d1eafb667efd
+PGO_VER:=5112-1659156285-2fb52df3d3b1ae50774185b21f856f82b58a35fa
 PGO_FILE:=chrome-linux-$(PGO_VER).profdata
 define Download/PGO_PROF
 	URL:=https://storage.googleapis.com/chromium-optimization-profiles/pgo_profiles
 	URL_FILE:=$(PGO_FILE)
 	FILE:=$(PGO_FILE)
-	HASH:=5b1490bb6176f0f70d19029701a2a2f8e26c9df01781db41b946659e3972892b
+	HASH:=791a8df3733a00e0389bc7b45c4910bab70545d900b6896fe14a329abf2f8952
 endef
 
 define Build/Prepare
@@ -107,15 +116,32 @@ define Build/Prepare
 	)
 endef
 
-define Build/Compile
+define Build/Configure
 	( \
-		cd "$(PKG_BUILD_DIR)/src" ; \
+		pushd "$(PKG_BUILD_DIR)/src" ; \
 		. ../init_env.sh "$(ARCH)" $(CPU_TYPE) $(CPU_SUBTYPE) "$(TOOLCHAIN_DIR)" ; \
 		export naive_flags+=" $$$${naive_ccache_flags}" ; \
 		mkdir -p "out" ; \
 		./gn/out/gn gen "out/Release" --args="$$$${naive_flags}" --script-executable="$(PYTHON)" ; \
-		$(NINJA) -C "$(PKG_BUILD_DIR)/src/out/Release" naive ; \
+		popd ; \
 	)
+endef
+
+define Build/Compile
+	$(if $(CONFIG_PACKAGE_naiveproxy), \
+		ninja -C "$(PKG_BUILD_DIR)/src/out/Release" naive)
+	$(if $(CONFIG_PACKAGE_libcronet), \
+		ninja -C "$(PKG_BUILD_DIR)/src/out/Release" cronet)
+endef
+
+define Build/InstallDev
+	$(INSTALL_DIR) $(1)/usr/include
+	$(CP) \
+		$(PKG_BUILD_DIR)/src/components/grpc_support/include/bidirectional_stream_c.h \
+		$(PKG_BUILD_DIR)/src/components/cronet/native/generated/cronet.idl_c.h \
+		$(PKG_BUILD_DIR)/src/components/cronet/native/include/cronet_c.h \
+		$(PKG_BUILD_DIR)/src/components/cronet/native/include/cronet_export.h \
+		$(1)/usr/include/
 endef
 
 define Package/naiveproxy/install
@@ -123,8 +149,14 @@ define Package/naiveproxy/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/out/Release/naive $(1)/usr/bin/naive
 endef
 
+define Package/libcronet/install
+	$(INSTALL_DIR) $(1)/usr/lib
+	$(CP) $(PKG_BUILD_DIR)/src/out/Release/libcronet.so $(1)/usr/lib/
+endef
+
 $(eval $(call Download,CLANG))
 $(eval $(call Download,GN_TOOL))
 $(eval $(call Download,PGO_PROF))
 
 $(eval $(call BuildPackage,naiveproxy))
+$(eval $(call BuildPackage,libcronet))

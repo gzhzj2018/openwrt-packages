@@ -1,5 +1,6 @@
 -- Copyright (C) 2018 jerrykuku <jerrykuku@qq.com>
--- Licensed to the public under the GNU General Public License v3.
+-- Licensed to the public under the GNU General Public License v3.0
+
 module('luci.controller.vssr', package.seeall)
 
 function index()
@@ -9,7 +10,7 @@ function index()
 
 	local page = entry({'admin', 'services', 'vssr'}, alias('admin', 'services', 'vssr', 'client'), _('Hello World'), 0) -- 首页
 	page.dependent = true
-	page.acl_depends = { "luci-app-vssr" }
+	page.acl_depends = { 'luci-app-vssr' }
 
 	entry({'admin', 'services', 'vssr', 'client'}, cbi('vssr/client'), _('SSR Client'), 10).leaf = true -- 基本设置
 	entry({'admin', 'services', 'vssr', 'servers'}, cbi('vssr/servers'), _('Severs Nodes'), 11).leaf = true -- 服务器节点
@@ -254,7 +255,7 @@ function refresh_data()
 			retstring = '-1'
 		end
 	elseif set == 'ip_data' then
-		local ip_data_url = uci:get("vssr","@socks5_proxy[0]","ip_data_url")        
+		local ip_data_url = uci:get("vssr", "@socks5_proxy[0]", "ip_data_url")
 		refresh_cmd = "wget-ssl -O- '" .. ip_data_url .. "' > /tmp/china_ssr.txt 2>/dev/null"
 		sret = luci.sys.call(refresh_cmd)
 		icount = luci.sys.exec('cat /tmp/china_ssr.txt | wc -l')

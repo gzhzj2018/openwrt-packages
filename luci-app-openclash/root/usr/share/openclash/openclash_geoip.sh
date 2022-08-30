@@ -31,6 +31,8 @@
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
          elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://fastly.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://raw.fastgit.org/Loyalsoldier/v2ray-rules-dat/release/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
          else
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o /tmp/GeoIP.dat >/dev/null 2>&1
          fi
@@ -38,7 +40,7 @@
          curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
       fi
       if [ "$?" -ne "0" ]; then
-         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/v/v2/v2raya/dists/v2ray-rules-dat/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
+         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/v/v2/v2raya/dists/v2ray-rules-dat/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
       fi
    else
       curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$GEOIP_CUSTOM_URL" -o /tmp/GeoIP.dat >/dev/null 2>&1
@@ -48,6 +50,7 @@
       cmp -s /tmp/GeoIP.dat "$geoip_path"
       if [ "$?" -ne "0" ]; then
          LOG_OUT "GeoIP Dat Has Been Updated, Starting To Replace The Old Version..."
+         rm -rf "/etc/openclash/geoip.dat"
          mv /tmp/GeoIP.dat "$geoip_path" >/dev/null 2>&1
          LOG_OUT "GeoIP Dat Update Successful!"
          sleep 3
