@@ -6,12 +6,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sing-box
-PKG_VERSION:=1.0.1
+PKG_VERSION:=1.0.4
 PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/SagerNet/sing-box/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=f5c745892771bb24e05171a8f1e3102c7d834429ff8e9468f8b238121caa7343
+PKG_HASH:=bf477345e54166c6226ef864f602ac048a26a13f9628d80f837a2084c777187a
 
 PKG_LICENSE:=GPL-3.0
 PKG_LICENSE_FILE:=LICENSE
@@ -38,7 +38,7 @@ define Package/sing-box
 endef
 
 GO_PKG_TARGET_VARS:=$(filter-out CGO_ENABLED=%,$(GO_PKG_TARGET_VARS)) CGO_ENABLED=0
-GO_PKG_TAGS:=with_quic,with_wireguard,with_acme
+GO_PKG_TAGS:=with_quic,with_grpc,with_wireguard
 
 define Package/$(PKG_NAME)/conffiles
 /etc/sing-box/config.json
